@@ -111,31 +111,5 @@ jobs:
           cache-gha: "true"
           cache-gha-scope: ${{ needs.init.outputs.app_dir }}
 
-
-  manifest:
-    name: Publish multi-architecture manifest
-    needs:
-      - init
-      - build
-
-    runs-on: ubuntu-latest
-
-    permissions:
-      id-token: write
-      packages: write
-
-    steps:
-
-      - name: Publish multi-architecture manifest
-        uses: home-assistant/builder/actions/publish-multi-arch-manifest@2026.09.0
-        with:
-          architectures: ${{ env.ARCHITECTURES }}
-
-          image-name: ${{ env.IMAGE_NAME }}
-          registry-prefix: ${{ env.REGISTRY_PREFIX }}
-
-          container-registry: ghcr.io
-          container-registry-username: ${{ github.repository_owner }}
-          container-registry-password: ${{ secrets.GITHUB_TOKEN }}
-
-          image-tags: ${{ needs.init.outputs.image_tags }}
+# Home Assistant gebruikt de images per architectuur (ghcr.io/ibusol/{arch}-week-ahead-energy),
+# een multi-arch manifest is daarom niet nodig.
