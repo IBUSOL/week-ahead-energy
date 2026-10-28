@@ -40,6 +40,14 @@ else
 fi
 
 export PYTHONPATH="/root:/root/dao:/root/dao/lib:/root/dao/prog"
+
+# Week Ahead Energy: meekijkmodus (alleen plannen, niets aansturen)
+if bashio::config.true 'meekijken'; then
+  export WAE_MEEKIJKEN=true
+  bashio::log.info "=> Meekijkmodus aan: er wordt niets aangestuurd"
+else
+  export WAE_MEEKIJKEN=false
+fi
 cd /root/dao/prog
 python3 check_db.py || bashio::log.info "check_db.py failed"
 
