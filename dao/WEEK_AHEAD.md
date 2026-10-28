@@ -17,7 +17,7 @@ met als doel een energieplanner die ~7 dagen vooruit kijkt op basis van het eige
 ## Versies
 
 ### 2026.10.0-wae.2
-- Kant-en-klare image via GitHub (`ghcr.io/ibusol/week-ahead-energy`): Home Assistant hoeft niet meer zelf te bouwen.
+- Kant-en-klare image via GitHub (`ghcr.io/ibusol/{arch}-week-ahead-energy`): Home Assistant hoeft niet meer zelf te bouwen.
 - Machines: het start- en eindvenster mag nu ook een **datum + tijd** zijn (`input_datetime` met datum, of een
   `datetime`-entity). Daarmee kun je een machine dagen vooruit inplannen. Alleen een tijd werkt zoals in DAO.
 

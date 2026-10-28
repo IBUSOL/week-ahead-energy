@@ -27,4 +27,4 @@ options:
 schema:
   use_self_compiled_miplib: bool?
   meekijken: bool
-image: "ghcr.io/ibusol/week-ahead-energy"
+image: "ghcr.io/ibusol/{arch}-week-ahead-energy"
