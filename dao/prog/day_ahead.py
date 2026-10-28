@@ -107,6 +107,10 @@ class DaCalc(DaBase):
         # _start_ev_soc = 67.0
         if _start_dt is not None or _start_soc is not None or _start_ev_soc is not None:
             self.debug = True
+        if os.environ.get("WAE_MEEKIJKEN", "").lower() == "true":
+            # Week Ahead Energy: meekijkmodus, niets naar Home Assistant schrijven
+            self.debug = True
+            logging.info("Meekijkmodus: planning wordt berekend, er wordt niets aangestuurd")
         logging.info(f"Debug = {self.debug}")
         if _start_dt is None:
             start_dt = dt.datetime.now()
