@@ -14,6 +14,16 @@ met als doel een energieplanner die ~7 dagen vooruit kijkt op basis van het eige
 - De add-on wordt op Home Assistant zelf gebouwd vanuit de broncode (geen kant-en-klare image).
 - De DAO-testversie (`release-testing`) is uit deze repository gehaald, zodat er geen tweede DAO-add-on verschijnt.
 
+## Versies
+
+### 2026.10.0-wae.2
+- Kant-en-klare image via GitHub (`ghcr.io/ibusol/week-ahead-energy`): Home Assistant hoeft niet meer zelf te bouwen.
+- Machines: het start- en eindvenster mag nu ook een **datum + tijd** zijn (`input_datetime` met datum, of een
+  `datetime`-entity). Daarmee kun je een machine dagen vooruit inplannen. Alleen een tijd werkt zoals in DAO.
+
+### 2026.10.0-wae.1
+- Eigen add-on naast DAO, meekijkmodus.
+
 ## Let op bij installatie
 
 - Gebruikt je DAO-config een MariaDB/PostgreSQL-database, geef deze add-on dan een **eigen database**
