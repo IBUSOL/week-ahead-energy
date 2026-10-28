@@ -20,9 +20,9 @@ from pandas.core.dtypes.inference import is_number
 from utils import (
     calc_adjustment_heatcurve,
     calc_uur_index,
-    convert_timestr,
     error_handling,
     interpolate,
+    parse_window_value,
 )
 
 from dao.prog.da_base import DaBase
@@ -2938,6 +2938,8 @@ class DaCalc(DaBase):
             ma_planned_end_dt.append(planned_end_dt)
             start_opt = start_dt  # now
             # ready_ma_dt = uur[U - 1] # het laatste moment van planningshorizon
+            start_dated = False
+            end_dated = False
             if machine_instant_start:
                 start_window_dt = start_dt
                 end_window_dt = start_dt + dt.timedelta(minutes=RL[m] * 15)
@@ -2951,7 +2953,9 @@ class DaCalc(DaBase):
                     error = True
                 else:
                     start_window_hm = self.get_state(start_window_entity).state
-                    start_window_dt = convert_timestr(start_window_hm, start_dt)
+                    start_window_dt, start_dated = parse_window_value(
+                        start_window_hm, start_dt
+                    )
                 if end_window_entity is None:
                     logging.error(
                         f"De 'entity end window' is niet gedefinieerd bij de instellingen "
@@ -2962,12 +2966,41 @@ class DaCalc(DaBase):
                         error = True
                 else:
                     end_window_hm = self.get_state(end_window_entity).state
-                    end_window_dt = convert_timestr(end_window_hm, start_dt)
-            if end_window_dt < start_window_dt:
-                start_window_dt -= dt.timedelta(days=1)
-            if end_window_dt < start_opt:
-                start_window_dt += dt.timedelta(days=1)
-                end_window_dt += dt.timedelta(days=1)
+                    end_window_dt, end_dated = parse_window_value(
+                        end_window_hm, start_dt
+                    )
+            if window_dated := (start_dated or end_dated):
+                # Week Ahead Energy: venster met datum, geen verschuiving per dag
+                if not start_dated:
+                    start_window_dt = dt.datetime.combine(
+                        end_window_dt.date(), start_window_dt.time()
+                    )
+                    if start_window_dt > end_window_dt:
+                        start_window_dt -= dt.timedelta(days=1)
+                if not end_dated:
+                    end_window_dt = dt.datetime.combine(
+                        start_window_dt.date(), end_window_dt.time()
+                    )
+                    if end_window_dt < start_window_dt:
+                        end_window_dt += dt.timedelta(days=1)
+                if end_window_dt <= start_opt:
+                    error = True
+                    logging.info(
+                        f"Machine {ma_name[m]} wordt niet ingepland, want "
+                        f"het planning-window ({start_window_dt} - {end_window_dt}) "
+                        f"ligt in het verleden"
+                    )
+                else:
+                    logging.info(
+                        f"Machine {ma_name[m]}: venster met datum "
+                        f"{start_window_dt} - {end_window_dt}"
+                    )
+            else:
+                if end_window_dt < start_window_dt:
+                    start_window_dt -= dt.timedelta(days=1)
+                if end_window_dt < start_opt:
+                    start_window_dt += dt.timedelta(days=1)
+                    end_window_dt += dt.timedelta(days=1)
             if end_window_dt > tijd[U - 1]:
                 error = True
                 logging.info(

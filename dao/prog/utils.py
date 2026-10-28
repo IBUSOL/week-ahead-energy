@@ -85,6 +85,31 @@ def get_value_from_dict(dag: str, options: dict) -> float:
     return result
 
 
+def parse_window_value(
+    value: str, now_dt: datetime.datetime
+) -> tuple[datetime.datetime, bool]:
+    """
+    Week Ahead Energy: leest een machinevenster uit een HA-state.
+    Ondersteunt alleen een tijd ("HH:MM:SS", zoals DAO) en een datum + tijd
+    ("YYYY-MM-DD HH:MM:SS" van een input_datetime, of ISO van een datetime-entity).
+    :return: (lokale naive datetime, True als er een datum in stond)
+    """
+    value = str(value).strip()
+    try:
+        return datetime.datetime.strptime(value, "%Y-%m-%d %H:%M:%S"), True
+    except ValueError:
+        pass
+    try:
+        parsed = datetime.datetime.fromisoformat(value)
+        if parsed.tzinfo is not None:
+            parsed = parsed.astimezone().replace(tzinfo=None)
+        if len(value) > 8:
+            return parsed.replace(second=0, microsecond=0), True
+    except ValueError:
+        pass
+    return convert_timestr(value, now_dt), False
+
+
 def convert_timestr(time_str: str, now_dt: datetime.datetime) -> datetime.datetime:
     result_hm = datetime.datetime.strptime(time_str, "%H:%M:%S")
     result = datetime.datetime(
