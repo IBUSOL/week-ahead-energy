@@ -13,7 +13,7 @@ on:
 
 env:
   ARCHITECTURES: '["amd64", "aarch64"]'
-  IMAGE_NAME: dao
+  IMAGE_NAME: week-ahead-energy
 
 permissions:
   contents: read
@@ -39,50 +39,25 @@ jobs:
         id: detect
         shell: bash
         run: |
-          DAO_VERSION=$(grep '^version:' dao/config.yaml | awk '{print $2}')
-          TEST_VERSION=$(grep '^version:' release-testing/config.yaml | awk '{print $2}')
+          VERSION=$(grep '^version:' dao/config.yaml | awk '{print $2}')
           RELEASE_TAG="${{ github.event.release.tag_name }}"
           if [[ -z "$RELEASE_TAG" ]]; then
             RELEASE_TAG="${{ inputs.release_tag }}"
           fi
-
-          echo "Release tag:     ${RELEASE_TAG}"
-          echo "DAO version:     ${DAO_VERSION}"
-          echo "Testing version: ${TEST_VERSION}"
-
-          if [[ "${RELEASE_TAG}" == "${DAO_VERSION}" ]]; then
-            echo "Detected stable release"
-
-            echo "app_dir=dao" >> "$GITHUB_OUTPUT"
-            echo "version=${DAO_VERSION}" >> "$GITHUB_OUTPUT"
-
-            {
-              echo "image_tags<<EOF"
-              echo "${DAO_VERSION}"
-              echo "stable"
-              echo "latest"
-              echo "EOF"
-            } >> "$GITHUB_OUTPUT"
-
-          elif [[ "${RELEASE_TAG}" == "${TEST_VERSION}" ]]; then
-            echo "Detected testing release"
-
-            echo "app_dir=release-testing" >> "$GITHUB_OUTPUT"
-            echo "version=${TEST_VERSION}" >> "$GITHUB_OUTPUT"
-
-            {
-              echo "image_tags<<EOF"
-              echo "${TEST_VERSION}"
-              echo "testing"
-              echo "EOF"
-            } >> "$GITHUB_OUTPUT"
-
-          else
-            echo "ERROR: release tag '${RELEASE_TAG}' does not match:"
-            echo "  dao/config.yaml: ${DAO_VERSION}"
-            echo "  release-testing/config.yaml: ${TEST_VERSION}"
+          echo "Release tag: ${RELEASE_TAG}"
+          echo "Version:     ${VERSION}"
+          if [[ "${RELEASE_TAG}" != "${VERSION}" ]]; then
+            echo "ERROR: release tag '${RELEASE_TAG}' does not match dao/config.yaml: ${VERSION}"
             exit 1
           fi
+          echo "app_dir=dao" >> "$GITHUB_OUTPUT"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          {
+            echo "image_tags<<EOF"
+            echo "${VERSION}"
+            echo "latest"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Prepare multi-architecture matrix
         id: matrix
@@ -111,11 +86,6 @@ jobs:
 
       - name: Check out repository
         uses: actions/checkout@v7
-
-      - name: Prepare testing build context
-        if: needs.init.outputs.app_dir == 'release-testing'
-        run: |
-          cp -a dao/* release-testing/
 
       - name: Build and publish image
         uses: home-assistant/builder/actions/build-image@2026.09.0
